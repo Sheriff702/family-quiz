@@ -43,9 +43,9 @@ export default function GameShell({ state, actions }: GameShellProps) {
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#f8fafc] text-slate-900">
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -top-32 left-[-10%] h-[420px] w-[420px] rounded-full bg-sky-300/50 blur-[140px]" />
-        <div className="absolute right-[-8%] top-10 h-[360px] w-[360px] rounded-full bg-amber-300/50 blur-[130px]" />
-        <div className="absolute bottom-[-12%] left-1/3 h-[420px] w-[420px] rounded-full bg-rose-300/40 blur-[150px]" />
+        <div className="absolute -top-32 left-[-10%] h-105 w-105 rounded-full bg-sky-300/50 blur-[140px]" />
+        <div className="absolute right-[-8%] top-10 h-90 w-90 rounded-full bg-amber-300/50 blur-[130px]" />
+        <div className="absolute bottom-[-12%] left-1/3 h-105 w-105 rounded-full bg-rose-300/40 blur-[150px]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,#ffffff,transparent_60%)] opacity-70" />
       </div>
       <main className="relative mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-8 px-6 py-12">
@@ -55,7 +55,7 @@ export default function GameShell({ state, actions }: GameShellProps) {
               What Did I Google
             </p>
             <h1 className="text-4xl font-semibold text-slate-900 md:text-5xl">
-              <span className="bg-gradient-to-r from-sky-500 via-amber-400 to-rose-400 bg-clip-text text-transparent">
+              <span className="bg-linear-to-r from-sky-500 via-amber-400 to-rose-400 bg-clip-text text-transparent">
                 Multiplayer Quiz Party
               </span>
             </h1>
@@ -124,7 +124,7 @@ export default function GameShell({ state, actions }: GameShellProps) {
                   {game.status === "lobby" && (
                     <div className="mt-6 flex flex-wrap items-center gap-3">
                       <button
-                        className="rounded-full bg-gradient-to-r from-amber-300 via-rose-300 to-sky-300 px-6 py-3 text-sm font-semibold text-slate-900 shadow-lg shadow-amber-200/60 transition hover:translate-y-[-1px] hover:shadow-amber-200/80 disabled:cursor-not-allowed disabled:opacity-60"
+                        className="rounded-full bg-linear-to-r from-amber-300 via-rose-300 to-sky-300 px-6 py-3 text-sm font-semibold text-slate-900 shadow-lg shadow-amber-200/60 transition hover:-translate-y-px hover:shadow-amber-200/80 disabled:cursor-not-allowed disabled:opacity-60"
                         onClick={startGame}
                         disabled={game.hostId !== playerId}
                       >
