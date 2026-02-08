@@ -29,6 +29,8 @@ export default function GameShell({ state, actions }: GameShellProps) {
     revealActive,
     currentAnswer,
     isAnimating,
+    showNamePrompt,
+    playerName,
     actionError,
   } = state;
   const {
@@ -38,8 +40,14 @@ export default function GameShell({ state, actions }: GameShellProps) {
     startGame,
     nextRound,
     handleAnswer,
+    savePlayerName,
     resetRoom,
   } = actions;
+  const namePromptDefaultValue =
+    displayName.trim() ||
+    (playerName.trim() && !playerName.trim().startsWith("Guest ")
+      ? playerName.trim()
+      : "");
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#f8fafc] text-slate-900">
@@ -214,6 +222,48 @@ export default function GameShell({ state, actions }: GameShellProps) {
           </div>
         )}
       </main>
+      {showNamePrompt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/30 px-4 backdrop-blur-[2px]">
+          <div className="w-[min(92vw,560px)] rounded-3xl border border-sky-200/80 bg-white/95 p-8 shadow-[0_36px_70px_-30px_rgba(14,116,144,0.75)]">
+            <p className="text-xs uppercase tracking-[0.34em] text-sky-600/80">
+              Welcome
+            </p>
+            <h3 className="mt-2 text-3xl font-semibold text-slate-900">
+              Choose your display name
+            </h3>
+            <p className="mt-2 text-sm text-slate-600">
+              Enter your name to join the game.
+            </p>
+            <form
+              className="mt-6 flex flex-col gap-3"
+              onSubmit={(event) => {
+                event.preventDefault();
+                const form = event.currentTarget;
+                const formData = new FormData(form);
+                const nextName = String(formData.get("displayName") ?? "");
+                if (!nextName.trim()) return;
+                void savePlayerName(nextName);
+              }}
+            >
+              <input
+                key={`${game?.id ?? "game"}-${playerId ?? "player"}`}
+                name="displayName"
+                defaultValue={namePromptDefaultValue}
+                placeholder="Your name"
+                autoFocus
+                required
+                className="rounded-2xl border border-slate-200/90 bg-white px-4 py-3 text-base text-slate-900 shadow-inner shadow-slate-200/70 focus:border-sky-400 focus:outline-none"
+              />
+              <button
+                type="submit"
+                className="rounded-full bg-linear-to-r from-amber-300 via-rose-300 to-sky-300 px-6 py-3 text-sm font-semibold text-slate-900 shadow-lg shadow-sky-200/70 transition hover:-translate-y-px hover:shadow-sky-200/90 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Continue
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

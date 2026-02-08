@@ -18,6 +18,9 @@ export default function Lobby({
   onJoin,
 }: LobbyProps) {
   const [roomCode, setRoomCode] = useState("");
+  const normalizedRoomCode = roomCode.trim().toUpperCase();
+  const canCreate = canPlay;
+  const canJoin = canPlay && normalizedRoomCode.length === 5;
 
   return (
     <section className="grid gap-6 rounded-3xl border border-slate-200/80 bg-white/80 p-8 shadow-[0_25px_60px_-40px_rgba(148,163,184,0.8)] backdrop-blur lg:grid-cols-[1.1fr_0.9fr]">
@@ -28,18 +31,18 @@ export default function Lobby({
         </p>
         <div className="mt-6 flex flex-col gap-3">
           <label className="text-xs uppercase tracking-[0.3em] text-slate-500">
-            Display name
+            Display name (optional)
           </label>
           <input
             value={displayName}
             onChange={(event) => onNameChange(event.target.value)}
             className="rounded-2xl border border-slate-200/80 bg-white/80 px-4 py-3 text-sm text-slate-900 shadow-inner shadow-slate-200/60 focus:border-sky-400 focus:outline-none"
-            placeholder="Your name"
+            placeholder="Your name or leave blank"
           />
           <button
             className="mt-3 rounded-full bg-amber-300 px-6 py-3 text-sm font-semibold text-slate-900 shadow-lg shadow-amber-200/60 transition hover:translate-y-[-1px] hover:shadow-amber-200/80 disabled:cursor-not-allowed disabled:opacity-60"
             onClick={onCreate}
-            disabled={!canPlay || !displayName.trim()}
+            disabled={!canCreate}
           >
             Create Room
           </button>
@@ -56,19 +59,32 @@ export default function Lobby({
           </label>
           <input
             value={roomCode}
-            onChange={(event) => setRoomCode(event.target.value.toUpperCase())}
+            onChange={(event) =>
+              setRoomCode(
+                event.target.value
+                  .toUpperCase()
+                  .replace(/[^A-Z]/g, "")
+                  .slice(0, 5),
+              )
+            }
             className="rounded-2xl border border-slate-200/80 bg-white/80 px-4 py-3 text-sm text-slate-900 shadow-inner shadow-slate-200/60 focus:border-sky-400 focus:outline-none"
             placeholder="ABCDE"
+            maxLength={5}
           />
           <button
             className="mt-2 rounded-full border border-slate-200/80 bg-white/80 px-6 py-3 text-sm font-semibold text-slate-700 transition hover:border-sky-300 hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
-            onClick={() => onJoin(roomCode.trim().toUpperCase())}
-            disabled={
-              !canPlay || !displayName.trim() || roomCode.trim().length !== 5
-            }
+            onClick={() => onJoin(normalizedRoomCode)}
+            disabled={!canJoin}
           >
             Join Room
           </button>
+          {!canJoin && (
+            <p className="text-xs text-slate-500">
+              {!canPlay
+                ? "Firebase is not configured in this deployment."
+                : "Enter a 5-letter room code."}
+            </p>
+          )}
         </div>
       </div>
     </section>

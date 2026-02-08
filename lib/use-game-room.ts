@@ -20,6 +20,13 @@ import { GameDoc, PlayerDoc, PlayerAnswer, Question } from "@/lib/types";
 import { randomCode } from "@/lib/utils";
 import { formatFirebaseError, getStoredGuestId } from "@/lib/game-helpers";
 
+const AUTO_GUEST_PREFIX = "Guest ";
+
+const isAutoGuestName = (name: string) => {
+  const trimmed = name.trim();
+  return !trimmed || trimmed.startsWith(AUTO_GUEST_PREFIX);
+};
+
 export type GameRoomState = {
   firebaseReady: boolean;
   missingFirebaseEnvKeys: string[];
@@ -33,6 +40,8 @@ export type GameRoomState = {
   revealActive: boolean;
   currentAnswer: PlayerAnswer | null;
   isAnimating: boolean;
+  showNamePrompt: boolean;
+  playerName: string;
   actionError: string | null;
 };
 
@@ -43,6 +52,7 @@ export type GameRoomActions = {
   startGame: () => Promise<void>;
   nextRound: () => Promise<void>;
   handleAnswer: (answer: string, cardEl: HTMLElement | null) => Promise<void>;
+  savePlayerName: (name: string) => Promise<void>;
   resetRoom: () => Promise<void>;
 };
 
@@ -70,6 +80,12 @@ export const useGameRoom = (): {
     const next = getStoredGuestId();
     setPlayerId(next);
     return next;
+  };
+
+  const resolvePlayerName = (rawName: string, resolvedPlayerId: string) => {
+    const trimmed = rawName.trim();
+    if (trimmed) return trimmed;
+    return `Guest ${resolvedPlayerId.slice(0, 4).toUpperCase()}`;
   };
 
   useEffect(() => {
@@ -118,6 +134,12 @@ export const useGameRoom = (): {
     if (!game.revealAt) return false;
     return now >= game.revealAt;
   }, [game, now]);
+
+  const isJoiner = Boolean(game && playerId && game.hostId !== playerId);
+  const showNamePrompt = Boolean(
+    game && player && isJoiner && isAutoGuestName(player.name),
+  );
+  const playerName = player?.name ?? "";
 
   const currentAnswer = useMemo<PlayerAnswer | null>(() => {
     if (!game || !playerId) return null;
@@ -195,10 +217,6 @@ export const useGameRoom = (): {
 
   const createGame = async () => {
     setActionError(null);
-    if (!displayName.trim()) {
-      setActionError("Add a display name to create a room.");
-      return;
-    }
     if (!firebaseReady || !db) {
       setActionError(
         "Firebase isn't ready. Check your environment variables and restart the dev server.",
@@ -210,6 +228,7 @@ export const useGameRoom = (): {
     const code = randomCode(5);
     const questions = buildGameQuestions();
     const gameRef = doc(firestore, "games", code);
+    const playerName = resolvePlayerName(displayName, resolvedPlayerId);
     const newGame: GameDoc = {
       id: code,
       code,
@@ -234,7 +253,7 @@ export const useGameRoom = (): {
       );
       const newPlayer: PlayerDoc = {
         id: resolvedPlayerId,
-        name: displayName.trim(),
+        name: playerName,
         score: 0,
         joinedAt: Date.now(),
         answers: {},
@@ -250,10 +269,6 @@ export const useGameRoom = (): {
 
   const joinGame = async (code: string) => {
     setActionError(null);
-    if (!displayName.trim()) {
-      setActionError("Add a display name to join a room.");
-      return;
-    }
     if (!firebaseReady || !db) {
       setActionError(
         "Firebase isn't ready. Check your environment variables and restart the dev server.",
@@ -262,6 +277,7 @@ export const useGameRoom = (): {
     }
     const firestore = db;
     const resolvedPlayerId = ensurePlayerId();
+    const playerName = resolvePlayerName(displayName, resolvedPlayerId);
     const gameRef = doc(firestore, "games", code);
     try {
       const snap = await getDoc(gameRef);
@@ -280,7 +296,7 @@ export const useGameRoom = (): {
       );
       const newPlayer: PlayerDoc = {
         id: resolvedPlayerId,
-        name: displayName.trim(),
+        name: playerName,
         score: 0,
         joinedAt: Date.now(),
         answers: {},
@@ -333,6 +349,7 @@ export const useGameRoom = (): {
 
   const handleAnswer = async (answer: string, cardEl: HTMLElement | null) => {
     if (!game || !question || !playerId || !player || !db) return;
+    if (showNamePrompt) return;
     const firestore = db;
     if (game.status !== "playing") return;
     if (currentAnswer || isAnimating || animationLock.current) return;
@@ -368,6 +385,27 @@ export const useGameRoom = (): {
         bubbles: true,
       });
       cardEl.dispatchEvent(event);
+    }
+  };
+
+  const savePlayerName = async (name: string) => {
+    setActionError(null);
+    const trimmed = name.trim();
+    if (!trimmed) {
+      setActionError("Enter your name to continue.");
+      return;
+    }
+    if (!game || !playerId || !db) return;
+    const firestore = db;
+    try {
+      await updateDoc(doc(firestore, "games", game.id, "players", playerId), {
+        name: trimmed,
+      });
+      setDisplayName(trimmed);
+    } catch (error) {
+      setActionError(
+        formatFirebaseError(error, "Could not save your name. Try again."),
+      );
     }
   };
 
@@ -423,6 +461,8 @@ export const useGameRoom = (): {
       revealActive,
       currentAnswer,
       isAnimating,
+      showNamePrompt,
+      playerName,
       actionError,
     },
     actions: {
@@ -432,6 +472,7 @@ export const useGameRoom = (): {
       startGame,
       nextRound,
       handleAnswer,
+      savePlayerName,
       resetRoom,
     },
   };
