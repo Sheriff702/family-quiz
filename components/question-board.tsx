@@ -10,6 +10,7 @@ type QuestionBoardProps = {
   revealAnswer: boolean;
   showAnswerPopup: boolean;
   hasAnswered: boolean;
+  selectedAnswer: string | null;
   showNextRoundButton: boolean;
   onNextRound: (() => void | Promise<void>) | null;
 };
@@ -19,6 +20,7 @@ export default function QuestionBoard({
   revealAnswer,
   showAnswerPopup,
   hasAnswered,
+  selectedAnswer,
   showNextRoundButton,
   onNextRound,
 }: QuestionBoardProps) {
@@ -180,7 +182,7 @@ export default function QuestionBoard({
           }
           transition={{ duration: 0.3 }}
         >
-          {hasAnswered ? "answer locked" : "______"}
+          {selectedAnswer ?? "______"}
         </motion.span>
       </div>
 

@@ -161,6 +161,7 @@ export default function GameShell({ state, actions }: GameShellProps) {
                         revealAnswer={revealActive}
                         showAnswerPopup={timeLeftMs === 0}
                         hasAnswered={Boolean(currentAnswer)}
+                        selectedAnswer={currentAnswer?.answer ?? null}
                         showNextRoundButton={
                           game.status !== "finished" &&
                           game.hostId === playerId &&
