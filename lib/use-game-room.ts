@@ -10,7 +10,7 @@ import {
   updateDoc,
   writeBatch,
 } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { db, missingFirebaseEnvKeys } from "@/lib/firebase";
 import {
   buildGameQuestions,
   QUESTION_COUNT,
@@ -22,6 +22,7 @@ import { formatFirebaseError, getStoredGuestId } from "@/lib/game-helpers";
 
 export type GameRoomState = {
   firebaseReady: boolean;
+  missingFirebaseEnvKeys: string[];
   canCreateOrJoin: boolean;
   displayName: string;
   game: GameDoc | null;
@@ -411,6 +412,7 @@ export const useGameRoom = (): {
   return {
     state: {
       firebaseReady,
+      missingFirebaseEnvKeys,
       canCreateOrJoin,
       displayName,
       game,

@@ -18,6 +18,7 @@ type GameShellProps = {
 export default function GameShell({ state, actions }: GameShellProps) {
   const {
     firebaseReady,
+    missingFirebaseEnvKeys,
     canCreateOrJoin,
     displayName,
     game,
@@ -84,6 +85,11 @@ export default function GameShell({ state, actions }: GameShellProps) {
         {!firebaseReady && (
           <div className="rounded-2xl border border-amber-300/70 bg-amber-100/70 px-6 py-4 text-sm text-amber-900 shadow-lg shadow-amber-200/40 backdrop-blur">
             Add Firebase environment variables to enable multiplayer play.
+            {missingFirebaseEnvKeys.length > 0 && (
+              <p className="mt-2 font-mono text-xs text-amber-950">
+                Missing: {missingFirebaseEnvKeys.join(", ")}
+              </p>
+            )}
           </div>
         )}
 
